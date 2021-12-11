@@ -1,5 +1,5 @@
 {
-  "name": "ts-playground",
+  "name": "typed-command-parser",
   "version": "1.0.0",
   "private": "true",
   "scripts": {

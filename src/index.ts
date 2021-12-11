@@ -61,23 +61,22 @@ const format = {
 } as const;
 
 const commands = [
-  "/search-message hello 10.2 440 --content hoge --page 3",
-  "/message search typescript 33.4 91",
-  "/search-message rust 99.9 256 --content gamma",
-  "/create-message rust 99.9 256 --content gamma",
-  "/search-message rust 99.9 256 1209 --content gamma",
-  "/search-message rust 99.9 --content gamma",
-  "/search-message rust 99.9 256 --content gamma --animal dog",
-  "/search-message rust gopher 256 --content gamma",
-  "/search-message 111 99.9 256 --page hoge"
+  "/search-message aaaaa 11.1 100 --content alpha --page 3",
+  "/message search bbbbb 22.2 200",
+  "/search-message ccccc 33.3 300 --content gamma",
+  "/create-message ddddd 44.4 400 --content gamma",
+  "/search-message ddddd 55.5 3.14159 --content gamma",
+  "/search-message eeeee 66.6 600 1209 --content gamma",
+  "/search-message fffff 77.7 --content gamma",
+  "/search-message ggggg 88.8 800 --content gamma --animal dog",
+  "/search-message iiiii mmmmm 900 --content gamma",
+  "/search-message 111 99.9 1000 --page hoge"
 ];
 
 for (const command of commands) {
   console.log(command);
   try {
     const values = parseCommand(command, format, types);
-    if (!values) continue;
-    const u = values.options.content;
     console.log(values);
   } catch (error) {
     if (error instanceof Error) {

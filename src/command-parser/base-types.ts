@@ -33,11 +33,6 @@ export type CommandFormatArguments<
   ];
 }[TCount];
 
-export type CommandFormatOptionsKey = readonly string[];
-
-export type CommandFormatOptions<
-  TConvertPatternSet extends ConvertPatternSet,
-  TKeys extends CommandFormatOptionsKey
-> = {
-  readonly [key in TKeys[number]]: Parameter<TConvertPatternSet>;
+export type CommandFormatOptions<TConvertPatternSet extends ConvertPatternSet> = {
+  readonly [key: string]: Parameter<TConvertPatternSet>;
 };

@@ -1,6 +1,6 @@
 import { CommandParserError } from "../error-base";
 import { fragmentCommand } from "./fragment";
-import { CommandFormatArgumentsCount, CommandFormatOptionsKey } from "../base-types";
+import { CommandFormatArgumentsCount, CommandFormatOptions, ConvertPatternSet } from "../base-types";
 
 export class UnexpectedArgumentError extends CommandParserError {
   public readonly expected: number;
@@ -33,35 +33,48 @@ export type InterpretArguments<TArgumentsCount extends CommandFormatArgumentsCou
   5: readonly [string, string, string, string, string];
 }[TArgumentsCount];
 
-export type InterpretOptions<TOptionsKey extends CommandFormatOptionsKey> = {
-  readonly [key in TOptionsKey[number]]?: string;
+type InternalInterpretOptions<
+  TConvertPatternSet extends ConvertPatternSet,
+  TOptions extends CommandFormatOptions<TConvertPatternSet>
+> = {
+  [key in keyof TOptions]?: string;
+};
+
+export type InterpretOptions<
+  TConvertPatternSet extends ConvertPatternSet,
+  TOptions extends CommandFormatOptions<TConvertPatternSet>
+> = {
+  readonly [key in keyof TOptions]?: string;
 };
 
 export type InterpretFormat<
+  TConvertPatternSet extends ConvertPatternSet,
   TArgumentsCount extends CommandFormatArgumentsCount,
-  TOptionsKey extends CommandFormatOptionsKey
+  TOptions extends CommandFormatOptions<TConvertPatternSet>
 > = {
   readonly prefixes: readonly string[];
   readonly argumentsCount: TArgumentsCount;
-  readonly optionsName: TOptionsKey;
+  readonly optionsName: TOptions;
 };
 
 export type InterpretResult<
+  TConvertPatternSet extends ConvertPatternSet,
   TArgumentsCount extends CommandFormatArgumentsCount,
-  TOptionsKey extends CommandFormatOptionsKey
+  TOptions extends CommandFormatOptions<TConvertPatternSet>
 > = {
   readonly prefix: string;
   readonly arguments: InterpretArguments<TArgumentsCount>;
-  readonly options: InterpretOptions<TOptionsKey>;
+  readonly options: InterpretOptions<TConvertPatternSet, TOptions>;
 };
 
 export function interpretCommand<
+  TConvertPatternSet extends ConvertPatternSet,
   TArgumentsCount extends CommandFormatArgumentsCount,
-  TOptionsKey extends CommandFormatOptionsKey
+  TOptions extends CommandFormatOptions<TConvertPatternSet>
 >(
   command: string,
-  format: InterpretFormat<TArgumentsCount, TOptionsKey>
-): InterpretResult<TArgumentsCount, TOptionsKey> | undefined {
+  format: InterpretFormat<TConvertPatternSet, TArgumentsCount, TOptions>
+): InterpretResult<TConvertPatternSet, TArgumentsCount, TOptions> | undefined {
   const fragments = fragmentCommand(command, format.prefixes);
   if (!fragments) return;
   return {
@@ -81,14 +94,18 @@ function checkArgumentCount<TArgumentsCount extends CommandFormatArgumentsCount>
   return values as InterpretArguments<TArgumentsCount>; // sorry.
 }
 
-function checkOptionName<TOptionsKey extends CommandFormatOptionsKey>(
-  values: { [name: string]: string },
-  keys: TOptionsKey
-): InterpretOptions<TOptionsKey> {
-  const unknownOptions = Object.keys(values).filter((name) => !(name in keys));
+function checkOptionName<
+  TConvertPatternSet extends ConvertPatternSet,
+  TOptions extends CommandFormatOptions<TConvertPatternSet>
+>(values: { [name: string]: string }, formats: TOptions): InterpretOptions<TConvertPatternSet, TOptions> {
+  const unknownOptions = Object.keys(values).filter((name) => !(name in formats));
   if (unknownOptions.length > 0) {
     throw new UnknownOptionsError(unknownOptions);
   }
-  const init: InterpretOptions<TOptionsKey> = {};
-  return keys.reduce((prev, key) => ({ ...prev, key: values[key] }), init);
+  const init: InternalInterpretOptions<TConvertPatternSet, TOptions> = {};
+  return Object.keys(formats).reduce((prev, curr) => {
+    const key = curr as keyof TOptions;
+    prev[key] = values[curr];
+    return prev;
+  }, init);
 }
