@@ -1,0 +1,1 @@
+export { parseCommand } from "./parser";
