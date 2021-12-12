@@ -1,38 +1,31 @@
 import { SupportTypes } from "./converter";
+import { ConvertTypeSetBase } from "./parser";
 
-export type ConvertPatternSet = { [name: string]: SupportTypes };
-
-type Parameter<TConvertPatternSet extends ConvertPatternSet = ConvertPatternSet> = {
+type Parameter<TConvertTypeSet extends ConvertTypeSetBase = ConvertTypeSetBase> = {
   readonly name: string;
   readonly description: string;
-  readonly type: keyof TConvertPatternSet;
+  readonly type: keyof TConvertTypeSet;
 };
 
-export type CountOf<
-  TConvertPatternSet extends ConvertPatternSet,
-  TCommandFormatArguments extends CommandFormatArguments<TConvertPatternSet>
-> =
-  TCommandFormatArguments["length"];
-
-export type CommandFormatArguments<TConvertPatternSet extends ConvertPatternSet> =
+export type CommandFormatArguments<TConvertTypeSet extends ConvertTypeSetBase> =
   | readonly []
-  | readonly [Parameter<TConvertPatternSet>]
-  | readonly [Parameter<TConvertPatternSet>, Parameter<TConvertPatternSet>]
-  | readonly [Parameter<TConvertPatternSet>, Parameter<TConvertPatternSet>, Parameter<TConvertPatternSet>]
+  | readonly [Parameter<TConvertTypeSet>]
+  | readonly [Parameter<TConvertTypeSet>, Parameter<TConvertTypeSet>]
+  | readonly [Parameter<TConvertTypeSet>, Parameter<TConvertTypeSet>, Parameter<TConvertTypeSet>]
   | readonly [
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>
-  ]
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>
+    ]
   | readonly [
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>,
-    Parameter<TConvertPatternSet>
-  ];
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>,
+      Parameter<TConvertTypeSet>
+    ];
 
-export type CommandFormatOptions<TConvertPatternSet extends ConvertPatternSet> = {
-  readonly [key: string]: Parameter<TConvertPatternSet>;
+export type CommandFormatOptions<TConvertTypeSet extends ConvertTypeSetBase> = {
+  readonly [key: string]: Parameter<TConvertTypeSet>;
 };
