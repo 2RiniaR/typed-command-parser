@@ -2,7 +2,6 @@ import { interpretCommand, InterpretFormat, InterpretResult } from "./interprete
 import { convertParameter, ConvertType } from "./converter";
 import {
   CommandFormatArguments,
-  CommandFormatArgumentsCount,
   CommandFormatOptions,
   ConvertPatternSet
 } from "./base-types";
@@ -13,15 +12,13 @@ export type ConvertTypeSet<TConvertPatternSet extends ConvertPatternSet> = {
 
 export type CommandFormatDefault<TConvertPatternSet extends ConvertPatternSet> = CommandFormat<
   TConvertPatternSet,
-  CommandFormatArgumentsCount,
-  CommandFormatArguments<ConvertPatternSet, CommandFormatArgumentsCount>,
-  CommandFormatOptions<ConvertPatternSet>
+  CommandFormatArguments<TConvertPatternSet>,
+  CommandFormatOptions<TConvertPatternSet>
 >;
 
 export type CommandFormat<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
-  TArguments extends CommandFormatArguments<TConvertPatternSet, TArgumentsCount>,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 > = {
   readonly prefixes: readonly string[];
@@ -31,12 +28,11 @@ export type CommandFormat<
 
 export type CommandResult<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
-  TArguments extends CommandFormatArguments<TConvertPatternSet, TArgumentsCount>,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 > = {
   readonly prefix: string;
-  readonly arguments: CommandResultArguments<TConvertPatternSet, TArgumentsCount, TArguments>;
+  readonly arguments: CommandResultArguments<TConvertPatternSet, TArguments>;
   readonly options: CommandResultOptions<TConvertPatternSet, TOptions>;
 };
 
@@ -48,8 +44,7 @@ type Parameter<TConvertPatternSet extends ConvertPatternSet = ConvertPatternSet>
 
 type CommandResultArguments<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
-  TArguments extends CommandFormatArguments<TConvertPatternSet, TArgumentsCount>
+  TArguments extends CommandFormatArguments<TConvertPatternSet>
 > = TArguments[0] extends Parameter<TConvertPatternSet>
   ? TArguments[1] extends Parameter<TConvertPatternSet>
     ? TArguments[2] extends Parameter<TConvertPatternSet>
@@ -86,14 +81,13 @@ type CommandResultOptions<
 
 function convertArguments<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
-  TArguments extends CommandFormatArguments<TConvertPatternSet, TArgumentsCount>,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 >(
-  values: InterpretResult<TConvertPatternSet, TArgumentsCount, TOptions>,
-  format: CommandFormat<TConvertPatternSet, TArgumentsCount, TArguments, TOptions>,
+  values: InterpretResult<TConvertPatternSet, TArguments, TOptions>,
+  format: CommandFormat<TConvertPatternSet, TArguments, TOptions>,
   types: ConvertTypeSet<TConvertPatternSet>
-): CommandResultArguments<TConvertPatternSet, TArgumentsCount, TArguments> {
+): CommandResultArguments<TConvertPatternSet, TArguments> {
   const parameters = values.arguments.map((argument, index) => {
     const fmt = format.arguments[index];
     if (!fmt) throw Error();
@@ -105,17 +99,16 @@ function convertArguments<
     };
     return convertParameter(param);
   });
-  return parameters as CommandResultArguments<TConvertPatternSet, TArgumentsCount, TArguments>;
+  return parameters as CommandResultArguments<TConvertPatternSet, TArguments>;
 }
 
 function convertOptions<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
-  TArguments extends CommandFormatArguments<TConvertPatternSet, TArgumentsCount>,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 >(
-  values: InterpretResult<TConvertPatternSet, TArgumentsCount, TOptions>,
-  format: CommandFormat<TConvertPatternSet, TArgumentsCount, TArguments, TOptions>,
+  values: InterpretResult<TConvertPatternSet, TArguments, TOptions>,
+  format: CommandFormat<TConvertPatternSet, TArguments, TOptions>,
   types: ConvertTypeSet<TConvertPatternSet>
 ): CommandResultOptions<TConvertPatternSet, TOptions> {
   const init: CommandResultOptions<TConvertPatternSet, TOptions> = {};
@@ -137,29 +130,28 @@ function convertOptions<
 
 export function parseCommand<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
-  TArguments extends CommandFormatArguments<TConvertPatternSet, TArgumentsCount>,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 >(
   command: string,
-  format: CommandFormat<TConvertPatternSet, TArgumentsCount, TArguments, TOptions>,
+  format: CommandFormat<TConvertPatternSet, TArguments, TOptions>,
   types: ConvertTypeSet<TConvertPatternSet>
-): CommandResult<TConvertPatternSet, TArgumentsCount, TArguments, TOptions> | undefined {
-  const interpretFormat: InterpretFormat<TConvertPatternSet, TArgumentsCount, TOptions> = {
+): CommandResult<TConvertPatternSet, TArguments, TOptions> | undefined {
+  const interpretFormat: InterpretFormat<TConvertPatternSet, TArguments, TOptions> = {
     prefixes: format.prefixes,
-    argumentsCount: format.arguments.length as TArgumentsCount, // It's needed to make sure that value of TArgumentsCount equals "format.arguments.length".
+    argumentsCount: format.arguments, // It's needed to make sure that value o equals "format.arguments.length".
     optionsName: format.options
   } as const;
-  const interpretation = interpretCommand<TConvertPatternSet, TArgumentsCount, TOptions>(command, interpretFormat);
+  const interpretation = interpretCommand<TConvertPatternSet, TArguments, TOptions>(command, interpretFormat);
   if (!interpretation) return;
 
   return {
     prefix: interpretation.prefix,
-    arguments: convertArguments<TConvertPatternSet, TArgumentsCount, TArguments, TOptions>(
+    arguments: convertArguments<TConvertPatternSet, TArguments, TOptions>(
       interpretation,
       format,
       types
     ),
-    options: convertOptions<TConvertPatternSet, TArgumentsCount, TArguments, TOptions>(interpretation, format, types)
+    options: convertOptions<TConvertPatternSet, TArguments, TOptions>(interpretation, format, types)
   };
 }

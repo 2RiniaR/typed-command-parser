@@ -1,6 +1,6 @@
 import { CommandParserError } from "../error-base";
 import { fragmentCommand } from "./fragment";
-import { CommandFormatArgumentsCount, CommandFormatOptions, ConvertPatternSet } from "../base-types";
+import {CommandFormatArguments, CommandFormatOptions, ConvertPatternSet, CountOf} from "../base-types";
 
 export class UnexpectedArgumentError extends CommandParserError {
   public readonly expected: number;
@@ -24,14 +24,17 @@ export class UnknownOptionsError extends CommandParserError {
   }
 }
 
-export type InterpretArguments<TArgumentsCount extends CommandFormatArgumentsCount> = {
+export type InterpretArguments<
+  TConvertPatternSet extends ConvertPatternSet,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>
+> = {
   0: readonly [];
   1: readonly [string];
   2: readonly [string, string];
   3: readonly [string, string, string];
   4: readonly [string, string, string, string];
   5: readonly [string, string, string, string, string];
-}[TArgumentsCount];
+}[CountOf<TConvertPatternSet, TArguments>];
 
 type InternalInterpretOptions<
   TConvertPatternSet extends ConvertPatternSet,
@@ -49,32 +52,32 @@ export type InterpretOptions<
 
 export type InterpretFormat<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 > = {
   readonly prefixes: readonly string[];
-  readonly argumentsCount: TArgumentsCount;
+  readonly argumentsCount: TArguments;
   readonly optionsName: TOptions;
 };
 
 export type InterpretResult<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 > = {
   readonly prefix: string;
-  readonly arguments: InterpretArguments<TArgumentsCount>;
+  readonly arguments: InterpretArguments<TConvertPatternSet, TArguments>;
   readonly options: InterpretOptions<TConvertPatternSet, TOptions>;
 };
 
 export function interpretCommand<
   TConvertPatternSet extends ConvertPatternSet,
-  TArgumentsCount extends CommandFormatArgumentsCount,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>,
   TOptions extends CommandFormatOptions<TConvertPatternSet>
 >(
   command: string,
-  format: InterpretFormat<TConvertPatternSet, TArgumentsCount, TOptions>
-): InterpretResult<TConvertPatternSet, TArgumentsCount, TOptions> | undefined {
+  format: InterpretFormat<TConvertPatternSet, TArguments, TOptions>
+): InterpretResult<TConvertPatternSet, TArguments, TOptions> | undefined {
   const fragments = fragmentCommand(command, format.prefixes);
   if (!fragments) return;
   return {
@@ -84,14 +87,17 @@ export function interpretCommand<
   };
 }
 
-function checkArgumentCount<TArgumentsCount extends CommandFormatArgumentsCount>(
+function checkArgumentCount<
+  TConvertPatternSet extends ConvertPatternSet,
+  TArguments extends CommandFormatArguments<TConvertPatternSet>
+>(
   values: readonly string[],
-  count: TArgumentsCount
-): InterpretArguments<TArgumentsCount> {
-  if (values.length !== count) {
-    throw new UnexpectedArgumentError(count, values.length);
+  args: TArguments
+): InterpretArguments<TConvertPatternSet, TArguments> {
+  if (values.length !== args.length) {
+    throw new UnexpectedArgumentError(args.length, values.length);
   }
-  return values as InterpretArguments<TArgumentsCount>; // sorry.
+  return values as InterpretArguments<TConvertPatternSet, TArguments>; // sorry.
 }
 
 function checkOptionName<
