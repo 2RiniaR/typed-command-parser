@@ -64,26 +64,26 @@ function readPrefix(content: string, prefixes: readonly string[]): ReadPrefixRes
 }
 
 type ReadOptionResult = { key: string; value: string; remain: string };
-const optionRegex = /^\s*-+(\w+)\s+(\S+)(.*?)$/;
+const optionRegex = /^\s*-+(\w+)\s+(?:"(.+)"|(\S+))(.*?)$/;
 function readOption(content: string): ReadOptionResult | undefined {
   const match = content.match(optionRegex);
   if (!match) return;
-  const captures = match as string[];
+  const captures = match;
   return {
     key: captures[1],
-    value: captures[2],
-    remain: captures[3]
+    value: captures[2] ?? captures[3],
+    remain: captures[4]
   };
 }
 
 type ReadArgumentResult = { value: string; remain: string };
-const argumentRegex = /^\s*(\S+)(.*?)$/;
+const argumentRegex = /^\s*(?:"(.+)"|(\S+))(.*?)$/;
 function readArgument(content: string): ReadArgumentResult | undefined {
   const match = content.match(argumentRegex);
   if (!match) return;
   const captures = match as string[];
   return {
-    value: captures[1],
-    remain: captures[2]
+    value: captures[1] ?? captures[2],
+    remain: captures[3]
   };
 }
