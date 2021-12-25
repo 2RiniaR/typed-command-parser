@@ -1,7 +1,7 @@
 import { CommandParserError } from "../error-base";
-import { fragmentCommand } from "./fragment";
-import { CommandFormatArguments } from "../base-types";
-import { CommandFormatOn, ConvertTypeSetBase } from "../parser";
+import { CommandFragments } from "../fragment";
+import { CommandFormatArguments } from "./base-types";
+import { CommandFormatOn, ConvertTypeSetBase } from "./interpret";
 
 export class UnexpectedArgumentError extends CommandParserError {
   public readonly expected: number;
@@ -28,7 +28,7 @@ export class UnknownOptionsError extends CommandParserError {
 export type CountOf<
   TConvertTypeSet extends ConvertTypeSetBase,
   TCommandFormatArguments extends CommandFormatArguments<TConvertTypeSet>
-  > = TCommandFormatArguments["length"];
+> = TCommandFormatArguments["length"];
 
 export type InterpretArguments<
   TConvertTypeSet extends ConvertTypeSetBase,
@@ -74,15 +74,13 @@ export type InterpretResult<
   readonly options: InterpretOptions<TConvertTypeSet, TFormat>;
 };
 
-export function interpretCommand<
+export function labelCommand<
   TConvertTypeSet extends ConvertTypeSetBase,
   TFormat extends CommandFormatOn<TConvertTypeSet>
 >(
-  command: string,
+  fragments: CommandFragments,
   format: InterpretFormat<TConvertTypeSet, TFormat>
-): InterpretResult<TConvertTypeSet, TFormat> | undefined {
-  const fragments = fragmentCommand(command, format.prefixes);
-  if (!fragments) return;
+): InterpretResult<TConvertTypeSet, TFormat> {
   return {
     prefix: fragments.prefix,
     arguments: checkArgumentCount(fragments.arguments, format.argumentsCount),
@@ -100,10 +98,10 @@ function checkArgumentCount<
   return values as InterpretArguments<TConvertTypeSet, TFormat>; // sorry.
 }
 
-function checkOptionName<
-  TConvertTypeSet extends ConvertTypeSetBase,
-  TFormat extends CommandFormatOn<TConvertTypeSet>
->(values: { [name: string]: string }, formats: TFormat["options"]): InterpretOptions<TConvertTypeSet, TFormat> {
+function checkOptionName<TConvertTypeSet extends ConvertTypeSetBase, TFormat extends CommandFormatOn<TConvertTypeSet>>(
+  values: { [name: string]: string },
+  formats: TFormat["options"]
+): InterpretOptions<TConvertTypeSet, TFormat> {
   const unknownOptions = Object.keys(values).filter((name) => !(name in formats));
   if (unknownOptions.length > 0) {
     throw new UnknownOptionsError(unknownOptions);

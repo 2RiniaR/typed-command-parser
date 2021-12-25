@@ -28,36 +28,31 @@ const types = {
 } as const;
 
 const format = {
-  prefixes: ["/search-message", "/message search"] as const,
+  prefixes: ["/search-message", "/message search"],
   arguments: [
     {
       name: "テスト文字列（引数1）",
-      description: "文字列を入力してね（必須）",
       type: "string"
     },
     {
       name: "テスト実数（引数2）",
-      description: "実数を入力してね（必須）",
       type: "float"
     },
     {
       name: "テスト整数（引数3）",
-      description: "整数を入力してね（必須）",
       type: "integer"
     }
-  ] as const,
+  ],
   options: {
     content: {
       name: "テスト文字列（オプション）",
-      description: "文字列を入力してね（任意）",
       type: "string"
-    } as const,
+    },
     page: {
       name: "テスト整数（オプション）",
-      description: "整数を入力してね（任意）",
       type: "integer"
-    } as const
-  } as const
+    }
+  }
 } as const;
 
 const commands = [
@@ -73,11 +68,26 @@ const commands = [
   "/search-message 111 99.9 1000 --page hoge"
 ];
 
+function showCommand(command: string) {
+  const result = parseCommand(command, format, types);
+  console.log(result);
+
+  if (!result) return;
+
+  // Return types
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const prefix: string = result.prefix;
+  const argument1: string = result.arguments[0];
+  const argument2: number = result.arguments[1];
+  const argument3: number = result.arguments[2];
+  const contentOption: string | undefined = result.options.content;
+  const pageOption: number | undefined = result.options.page;
+}
+
 for (const command of commands) {
   console.log(command);
   try {
-    const values = parseCommand(command, format, types);
-    console.log(values);
+    showCommand(command);
   } catch (error) {
     if (error instanceof Error) {
       console.error(error.message);
