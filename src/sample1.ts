@@ -54,7 +54,14 @@ const format = {
   }
 } as const;
 
-const commands = ['/timeout 1234567890 0.5 --message "You are timed out."'];
+const commands = [
+  '/timeout 1234567890 0.5 --message "You are timed out."',
+  "/timeout 9876543210 1.0",
+  "/timeout 1234567890 hoge",
+  '/timeout 1234567890 --message "You are timed out."',
+  '/timeout 1234567890 0.5 --message "You are timed out." --page 2',
+  '!timeout 1234567890 0.5 --message "You are timed out."'
+];
 
 function showCommand(command: string) {
   const result = parseCommand(command, format, types);
