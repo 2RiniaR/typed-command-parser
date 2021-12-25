@@ -1,4 +1,4 @@
-import { CommandParserError } from "../error-base";
+import { CommandParserError } from "./error-base";
 
 export class FragmentLimitError extends CommandParserError {
   message = "引数が多すぎます。";

@@ -1,9 +1,7 @@
-import { SupportTypes } from "./converter";
-import { ConvertTypeSetBase } from "./parser";
+import { ConvertTypeSetBase } from "./interpret";
 
-type Parameter<TConvertTypeSet extends ConvertTypeSetBase = ConvertTypeSetBase> = {
+export type Parameter<TConvertTypeSet extends ConvertTypeSetBase = ConvertTypeSetBase> = {
   readonly name: string;
-  readonly description: string;
   readonly type: keyof TConvertTypeSet;
 };
 
